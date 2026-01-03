@@ -1,6 +1,7 @@
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App.tsx';
+import App from './App';
 
 console.log("Bolão Premiado: Iniciando renderização...");
 
@@ -28,7 +29,6 @@ const init = () => {
   }
 };
 
-// Pequeno atraso para garantir que o importmap seja processado pelo navegador
 if (document.readyState === 'complete') {
   init();
 } else {

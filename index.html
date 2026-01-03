@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -28,7 +29,6 @@
     </style>
     
     <script>
-      // Shim global para o processo exigido pelo SDK do Gemini
       window.process = { env: { API_KEY: "" } };
       window.onerror = function(msg, url, lineNo, columnNo, error) {
         var display = document.getElementById('error-display');
@@ -46,7 +46,7 @@
     "react": "https://esm.sh/react@19.0.0",
     "react-dom": "https://esm.sh/react-dom@19.0.0",
     "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
-    "@google/genai": "https://esm.sh/@google/genai@0.21.0",
+    "@google/genai": "https://esm.sh/@google/genai",
     "firebase/app": "https://esm.sh/firebase@11.2.0/app",
     "firebase/analytics": "https://esm.sh/firebase@11.2.0/analytics",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
@@ -61,7 +61,7 @@
     <div id="root">
         <div class="flex flex-col items-center justify-center h-screen space-y-4">
             <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-            <p class="text-slate-500 font-medium">Carregando interface...</p>
+            <p class="text-slate-500 font-medium">Carregando Bolão Premiado...</p>
         </div>
     </div>
     <script type="module" src="./index.tsx"></script>
