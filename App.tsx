@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, UserRole, Pool, PoolStatus } from './types.ts';
 import Layout from './components/Layout.tsx';
 import PoolCard from './components/PoolCard.tsx';
 import { LOTTERY_GAMES, APP_MESSAGES } from './constants.tsx';
 import { geminiService } from './services/geminiService.ts';
+import './firebase.ts'; // Inicializa o Firebase
 
 const MOCK_USER: User = {
   id: 'u1',
@@ -86,11 +87,17 @@ const App: React.FC = () => {
   const handleGenerateLucky = async () => {
     if (!selectedPool) return;
     setIsGenerating(true);
-    const game = LOTTERY_GAMES.find(g => g.id === selectedPool.gameType);
-    const nums = await geminiService.generateLuckyNumbers(selectedPool.gameType, game?.minNumbers || 6);
-    setLuckyNumbers(nums);
-    setIsGenerating(false);
-    setIsLuckyModalOpen(true);
+    try {
+      const game = LOTTERY_GAMES.find(g => g.id === selectedPool.gameType);
+      const nums = await geminiService.generateLuckyNumbers(selectedPool.gameType, game?.minNumbers || 6);
+      setLuckyNumbers(nums);
+      setIsLuckyModalOpen(true);
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao gerar números da sorte.");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const renderHome = () => (
@@ -149,10 +156,11 @@ const App: React.FC = () => {
             
             <div className="bg-indigo-600 rounded-3xl p-6 text-white space-y-4">
               <h3 className="font-bold text-sm">Palpite da IA (Gemini)</h3>
+              <p className="text-xs opacity-80">Gere números baseados em tendências e estatísticas simuladas.</p>
               <button 
                 onClick={handleGenerateLucky}
                 disabled={isGenerating}
-                className="w-full py-3 bg-white text-indigo-600 font-bold rounded-xl text-xs disabled:opacity-50"
+                className="w-full py-3 bg-white text-indigo-600 font-bold rounded-xl text-xs disabled:opacity-50 transition-all active:scale-95"
               >
                 {isGenerating ? 'Gerando...' : 'Sugerir Números da Sorte'}
               </button>
@@ -160,7 +168,7 @@ const App: React.FC = () => {
 
             <button 
               onClick={() => setShowPaymentModal(true)}
-              className="w-full py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-lg"
+              className="w-full py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-transform"
             >
               Comprar Cota R$ {selectedPool.pricePerQuota.toFixed(2)}
             </button>
@@ -170,48 +178,62 @@ const App: React.FC = () => {
         <>
           {activeTab === 'home' && renderHome()}
           {activeTab === 'create' && (
-            <div className="p-6 space-y-6">
+            <div className="p-6 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
               <h2 className="text-2xl font-bold text-slate-800">Criar Bolão</h2>
               <form onSubmit={handleCreatePool} className="space-y-4">
-                <input required placeholder="Nome do Bolão" className="w-full p-4 border rounded-xl" onChange={e => setNewPool({...newPool, name: e.target.value})} />
-                <textarea placeholder="Descrição" className="w-full p-4 border rounded-xl" onChange={e => setNewPool({...newPool, description: e.target.value})} />
-                <div className="grid grid-cols-2 gap-4">
-                  <input type="number" placeholder="Cotas" className="w-full p-4 border rounded-xl" onChange={e => setNewPool({...newPool, totalQuotas: parseInt(e.target.value)})} />
-                  <input type="number" placeholder="Preço" className="w-full p-4 border rounded-xl" onChange={e => setNewPool({...newPool, pricePerQuota: parseFloat(e.target.value)})} />
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-400 uppercase">Informações Básicas</label>
+                  <input required placeholder="Nome do Bolão" className="w-full p-4 border rounded-xl bg-white shadow-sm focus:ring-2 focus:ring-blue-500/20" onChange={e => setNewPool({...newPool, name: e.target.value})} />
+                  <textarea placeholder="Descrição curta para os participantes" className="w-full p-4 border rounded-xl bg-white shadow-sm focus:ring-2 focus:ring-blue-500/20 h-24" onChange={e => setNewPool({...newPool, description: e.target.value})} />
                 </div>
-                <button type="submit" className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg">Lançar Bolão</button>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-400">TOTAL DE COTAS</label>
+                    <input type="number" placeholder="Ex: 50" className="w-full p-4 border rounded-xl shadow-sm" onChange={e => setNewPool({...newPool, totalQuotas: parseInt(e.target.value)})} />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-400">VALOR POR COTA (R$)</label>
+                    <input type="number" placeholder="Ex: 25" className="w-full p-4 border rounded-xl shadow-sm" onChange={e => setNewPool({...newPool, pricePerQuota: parseFloat(e.target.value)})} />
+                  </div>
+                </div>
+                <button type="submit" className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg mt-4 transition-all active:scale-95">Lançar Bolão</button>
               </form>
             </div>
           )}
-          {activeTab === 'wallet' && <div className="p-20 text-center text-slate-400 font-medium">Carteira disponível em breve.</div>}
-          {activeTab === 'my-pools' && <div className="p-20 text-center text-slate-400 font-medium">Seus bolões aparecerão aqui.</div>}
-          {activeTab === 'profile' && <div className="p-20 text-center text-slate-400 font-medium">Configurações de perfil.</div>}
+          {activeTab === 'wallet' && <div className="p-20 text-center text-slate-400 font-medium">Carteira disponível em breve com integração Firebase.</div>}
+          {activeTab === 'my-pools' && <div className="p-20 text-center text-slate-400 font-medium">Seus bolões aparecerão aqui após a compra.</div>}
+          {activeTab === 'profile' && <div className="p-20 text-center text-slate-400 font-medium">Configurações de perfil e segurança.</div>}
         </>
       )}
 
       {showPaymentModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6" onClick={() => setShowPaymentModal(false)}>
-          <div className="bg-white p-8 rounded-[40px] w-full max-w-sm text-center space-y-6" onClick={e => e.stopPropagation()}>
-            <h3 className="text-xl font-bold text-slate-800">Pagamento PIX</h3>
-            <div className="bg-slate-50 aspect-square w-full rounded-3xl border-2 border-dashed border-slate-200 flex items-center justify-center">
-              <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=BOLAO_MOCK" className="w-48 h-48 opacity-80" alt="QR" />
+          <div className="bg-white p-8 rounded-[40px] w-full max-w-sm text-center space-y-6 animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center">
+              <h3 className="text-xl font-bold text-slate-800">Pagamento PIX</h3>
+              <button onClick={() => setShowPaymentModal(false)} className="p-2 text-slate-400 hover:text-slate-600">✕</button>
             </div>
-            <p className="text-xs text-slate-400">Escaneie o QR Code para pagar a cota via PIX.</p>
-            <button className="w-full py-4 bg-emerald-600 text-white font-bold rounded-2xl" onClick={() => setShowPaymentModal(false)}>Confirmar Pagamento</button>
+            <div className="bg-slate-50 aspect-square w-full rounded-3xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-4">
+              <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=BOLAO_PIX_PAYMENT_MOCK" className="w-48 h-48 opacity-90" alt="QR" />
+              <button className="text-xs font-bold text-blue-600 hover:underline">Copiar código PIX</button>
+            </div>
+            <p className="text-[10px] text-slate-400 leading-relaxed uppercase font-bold tracking-tight">Após o pagamento, aguarde a confirmação automática do sistema.</p>
+            <button className="w-full py-4 bg-emerald-600 text-white font-bold rounded-2xl shadow-md transition-all active:scale-95" onClick={() => setShowPaymentModal(false)}>Confirmar Pagamento</button>
           </div>
         </div>
       )}
 
       {isLuckyModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6">
-          <div className="bg-white p-10 rounded-[40px] w-full max-w-sm text-center">
-            <h3 className="text-xl font-bold mb-6 text-slate-800">Números Sugeridos</h3>
+          <div className="bg-white p-10 rounded-[40px] w-full max-w-sm text-center animate-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-bold mb-6 text-slate-800 tracking-tight">Números Gerados</h3>
             <div className="flex flex-wrap justify-center gap-3 mb-8">
               {luckyNumbers.map((n, i) => (
-                <span key={i} className="w-12 h-12 bg-indigo-50 text-indigo-600 flex items-center justify-center rounded-full font-bold text-lg border border-indigo-100 shadow-sm">{n}</span>
+                <span key={i} className="w-12 h-12 bg-indigo-50 text-indigo-600 flex items-center justify-center rounded-full font-bold text-lg border border-indigo-100 shadow-sm animate-in fade-in zoom-in duration-300 delay-75">{n}</span>
               ))}
             </div>
-            <button className="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl" onClick={() => setIsLuckyModalOpen(false)}>Fechar</button>
+            <p className="text-[11px] text-slate-400 mb-6 italic">Atenção: Números gerados por IA não garantem vitória. Jogue com responsabilidade.</p>
+            <button className="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl shadow-lg transition-all active:scale-95" onClick={() => setIsLuckyModalOpen(false)}>Copiar e Fechar</button>
           </div>
         </div>
       )}
