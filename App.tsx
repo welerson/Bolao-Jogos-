@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { User, UserRole, Pool, PoolStatus } from './types';
 import Layout from './components/Layout';
