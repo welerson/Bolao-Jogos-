@@ -29,8 +29,8 @@ const init = () => {
   }
 };
 
-if (document.readyState === 'complete') {
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
   init();
 } else {
-  window.addEventListener('load', init);
+  document.addEventListener('DOMContentLoaded', init);
 }
