@@ -80,6 +80,7 @@ const App: React.FC = () => {
     };
     setPools([pool, ...pools]);
     setActiveTab('home');
+    alert('Bolão criado com sucesso!');
   };
 
   const handleGenerateLucky = async () => {
@@ -136,13 +137,30 @@ const App: React.FC = () => {
     <Layout activeTab={activeTab} onTabChange={setActiveTab} userRole={MOCK_USER.role}>
       {selectedPool ? (
         <div className="bg-white min-h-screen">
-          <button onClick={() => setSelectedPool(null)} className="p-4 text-blue-600 font-bold">← Voltar</button>
-          <div className="p-6">
-            <h2 className="text-2xl font-bold">{selectedPool.name}</h2>
-            <p className="text-slate-500 mb-6">{selectedPool.description}</p>
+          <button onClick={() => setSelectedPool(null)} className="p-4 text-blue-600 font-bold flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            Voltar
+          </button>
+          <div className="p-6 space-y-6">
+            <h2 className="text-2xl font-bold text-slate-800">{selectedPool.name}</h2>
+            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 text-sm text-slate-600">
+              {selectedPool.description}
+            </div>
+            
+            <div className="bg-indigo-600 rounded-3xl p-6 text-white space-y-4">
+              <h3 className="font-bold text-sm">Palpite da IA (Gemini)</h3>
+              <button 
+                onClick={handleGenerateLucky}
+                disabled={isGenerating}
+                className="w-full py-3 bg-white text-indigo-600 font-bold rounded-xl text-xs disabled:opacity-50"
+              >
+                {isGenerating ? 'Gerando...' : 'Sugerir Números da Sorte'}
+              </button>
+            </div>
+
             <button 
               onClick={() => setShowPaymentModal(true)}
-              className="w-full py-4 bg-blue-600 text-white font-bold rounded-2xl"
+              className="w-full py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-lg"
             >
               Comprar Cota R$ {selectedPool.pricePerQuota.toFixed(2)}
             </button>
@@ -152,40 +170,48 @@ const App: React.FC = () => {
         <>
           {activeTab === 'home' && renderHome()}
           {activeTab === 'create' && (
-            <div className="p-6">
-              <h2 className="text-2xl font-bold mb-6">Criar Bolão</h2>
+            <div className="p-6 space-y-6">
+              <h2 className="text-2xl font-bold text-slate-800">Criar Bolão</h2>
               <form onSubmit={handleCreatePool} className="space-y-4">
                 <input required placeholder="Nome do Bolão" className="w-full p-4 border rounded-xl" onChange={e => setNewPool({...newPool, name: e.target.value})} />
-                <button type="submit" className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl">Lançar</button>
+                <textarea placeholder="Descrição" className="w-full p-4 border rounded-xl" onChange={e => setNewPool({...newPool, description: e.target.value})} />
+                <div className="grid grid-cols-2 gap-4">
+                  <input type="number" placeholder="Cotas" className="w-full p-4 border rounded-xl" onChange={e => setNewPool({...newPool, totalQuotas: parseInt(e.target.value)})} />
+                  <input type="number" placeholder="Preço" className="w-full p-4 border rounded-xl" onChange={e => setNewPool({...newPool, pricePerQuota: parseFloat(e.target.value)})} />
+                </div>
+                <button type="submit" className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg">Lançar Bolão</button>
               </form>
             </div>
           )}
-          {activeTab === 'wallet' && <div className="p-6 font-bold text-center">Carteira (Em breve)</div>}
-          {activeTab === 'my-pools' && <div className="p-6 font-bold text-center">Meus Bolões (Em breve)</div>}
-          {activeTab === 'profile' && <div className="p-6 font-bold text-center">Perfil (Em breve)</div>}
+          {activeTab === 'wallet' && <div className="p-20 text-center text-slate-400 font-medium">Carteira disponível em breve.</div>}
+          {activeTab === 'my-pools' && <div className="p-20 text-center text-slate-400 font-medium">Seus bolões aparecerão aqui.</div>}
+          {activeTab === 'profile' && <div className="p-20 text-center text-slate-400 font-medium">Configurações de perfil.</div>}
         </>
       )}
 
       {showPaymentModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-6" onClick={() => setShowPaymentModal(false)}>
-          <div className="bg-white p-8 rounded-[32px] w-full max-w-sm text-center" onClick={e => e.stopPropagation()}>
-            <h3 className="text-xl font-bold mb-4">Pagamento PIX</h3>
-            <div className="bg-slate-100 aspect-square w-full rounded-2xl mb-6 flex items-center justify-center">
-              <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=MOCK" alt="QR" />
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6" onClick={() => setShowPaymentModal(false)}>
+          <div className="bg-white p-8 rounded-[40px] w-full max-w-sm text-center space-y-6" onClick={e => e.stopPropagation()}>
+            <h3 className="text-xl font-bold text-slate-800">Pagamento PIX</h3>
+            <div className="bg-slate-50 aspect-square w-full rounded-3xl border-2 border-dashed border-slate-200 flex items-center justify-center">
+              <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=BOLAO_MOCK" className="w-48 h-48 opacity-80" alt="QR" />
             </div>
-            <button className="w-full py-4 bg-emerald-600 text-white font-bold rounded-xl" onClick={() => setShowPaymentModal(false)}>Confirmar</button>
+            <p className="text-xs text-slate-400">Escaneie o QR Code para pagar a cota via PIX.</p>
+            <button className="w-full py-4 bg-emerald-600 text-white font-bold rounded-2xl" onClick={() => setShowPaymentModal(false)}>Confirmar Pagamento</button>
           </div>
         </div>
       )}
 
       {isLuckyModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-6">
-          <div className="bg-white p-8 rounded-[32px] w-full max-w-sm text-center">
-            <h3 className="text-xl font-bold mb-4">Números da Sorte</h3>
-            <div className="flex justify-center gap-2 mb-6">
-              {luckyNumbers.map((n, i) => <span key={i} className="w-10 h-10 bg-indigo-100 text-indigo-700 flex items-center justify-center rounded-full font-bold">{n}</span>)}
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6">
+          <div className="bg-white p-10 rounded-[40px] w-full max-w-sm text-center">
+            <h3 className="text-xl font-bold mb-6 text-slate-800">Números Sugeridos</h3>
+            <div className="flex flex-wrap justify-center gap-3 mb-8">
+              {luckyNumbers.map((n, i) => (
+                <span key={i} className="w-12 h-12 bg-indigo-50 text-indigo-600 flex items-center justify-center rounded-full font-bold text-lg border border-indigo-100 shadow-sm">{n}</span>
+              ))}
             </div>
-            <button className="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl" onClick={() => setIsLuckyModalOpen(false)}>Fechar</button>
+            <button className="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl" onClick={() => setIsLuckyModalOpen(false)}>Fechar</button>
           </div>
         </div>
       )}
