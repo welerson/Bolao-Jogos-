@@ -1,0 +1,7 @@
+{
+  "name": "Bolão Premiado - Gestão de Apostas Coletivas",
+  "description": "Aplicativo completo para organização, gestão e transparência de bolões de loterias oficiais da Caixa. Permite controle de cotas, comprovantes e rateio de prêmios.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
