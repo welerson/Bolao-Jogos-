@@ -1,23 +1,15 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
-// Função para obter a API Key de forma segura
-const getApiKey = () => {
-  return (typeof process !== 'undefined' && process.env && process.env.API_KEY) || "";
-};
-
-const getAIClient = () => {
-  const apiKey = getApiKey();
-  return new GoogleGenAI({ apiKey });
-};
-
 export const geminiService = {
   async generateLuckyNumbers(gameType: string, count: number) {
     try {
-      const ai = getAIClient();
+      // Inicialização conforme diretrizes: usar process.env.API_KEY diretamente
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
-        contents: `Gere ${count} números da sorte para um jogo de ${gameType} da loteria brasileira. Retorne apenas os números separados por vírgula.`,
+        contents: `Gere ${count} números da sorte para um jogo de ${gameType} da loteria brasileira. Retorne no formato JSON com uma chave 'numbers' contendo um array de inteiros.`,
         config: {
           temperature: 1,
           responseMimeType: "application/json",
@@ -34,10 +26,15 @@ export const geminiService = {
         }
       });
 
-      return JSON.parse(response.text).numbers;
+      // IMPORTANTE: .text é uma propriedade, não um método
+      const text = response.text;
+      if (!text) throw new Error("Resposta vazia da IA");
+      
+      const data = JSON.parse(text);
+      return data.numbers;
     } catch (e) {
       console.error("Erro ao gerar números com Gemini:", e);
-      // Fallback manual caso a IA falhe ou a chave esteja ausente
+      // Fallback robusto
       const fallbackNumbers = [];
       const max = gameType === 'mega-sena' ? 60 : 25;
       while(fallbackNumbers.length < count) {
@@ -50,12 +47,12 @@ export const geminiService = {
 
   async explainGameRules(gameType: string) {
     try {
-      const ai = getAIClient();
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
         contents: `Explique brevemente as regras básicas e como funciona o prêmio do jogo ${gameType} da Caixa Econômica Federal. Seja direto e use português brasileiro.`,
       });
-      return response.text;
+      return response.text || "Informações indisponíveis.";
     } catch (e) {
       return "Informações sobre as regras não disponíveis no momento.";
     }
