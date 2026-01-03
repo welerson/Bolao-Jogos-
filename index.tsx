@@ -1,7 +1,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App.tsx';
+import App from './App';
 
 console.log("Bolão Premiado: Iniciando renderização em " + new Date().toLocaleTimeString());
 
@@ -29,7 +29,6 @@ const renderApp = () => {
   }
 };
 
-// Pequeno delay para garantir que o DOM e o importmap estejam prontos
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', renderApp);
 } else {

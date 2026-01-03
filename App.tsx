@@ -1,11 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
-import { User, UserRole, Pool, PoolStatus } from './types.ts';
-import Layout from './components/Layout.tsx';
-import PoolCard from './components/PoolCard.tsx';
-import { LOTTERY_GAMES, APP_MESSAGES } from './constants.tsx';
-import { geminiService } from './services/geminiService.ts';
-import './firebase.ts'; // Inicializa o Firebase
+import React, { useState } from 'react';
+import { User, UserRole, Pool, PoolStatus } from './types';
+import Layout from './components/Layout';
+import PoolCard from './components/PoolCard';
+import { LOTTERY_GAMES, APP_MESSAGES } from './constants';
+import { geminiService } from './services/geminiService';
+import './firebase';
 
 const MOCK_USER: User = {
   id: 'u1',
@@ -200,7 +200,7 @@ const App: React.FC = () => {
               </form>
             </div>
           )}
-          {activeTab === 'wallet' && <div className="p-20 text-center text-slate-400 font-medium">Carteira disponível em breve com integração Firebase.</div>}
+          {activeTab === 'wallet' && <div className="p-20 text-center text-slate-400 font-medium">Carteira disponível em breve.</div>}
           {activeTab === 'my-pools' && <div className="p-20 text-center text-slate-400 font-medium">Seus bolões aparecerão aqui após a compra.</div>}
           {activeTab === 'profile' && <div className="p-20 text-center text-slate-400 font-medium">Configurações de perfil e segurança.</div>}
         </>
@@ -217,7 +217,6 @@ const App: React.FC = () => {
               <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=BOLAO_PIX_PAYMENT_MOCK" className="w-48 h-48 opacity-90" alt="QR" />
               <button className="text-xs font-bold text-blue-600 hover:underline">Copiar código PIX</button>
             </div>
-            <p className="text-[10px] text-slate-400 leading-relaxed uppercase font-bold tracking-tight">Após o pagamento, aguarde a confirmação automática do sistema.</p>
             <button className="w-full py-4 bg-emerald-600 text-white font-bold rounded-2xl shadow-md transition-all active:scale-95" onClick={() => setShowPaymentModal(false)}>Confirmar Pagamento</button>
           </div>
         </div>
@@ -232,7 +231,6 @@ const App: React.FC = () => {
                 <span key={i} className="w-12 h-12 bg-indigo-50 text-indigo-600 flex items-center justify-center rounded-full font-bold text-lg border border-indigo-100 shadow-sm animate-in fade-in zoom-in duration-300 delay-75">{n}</span>
               ))}
             </div>
-            <p className="text-[11px] text-slate-400 mb-6 italic">Atenção: Números gerados por IA não garantem vitória. Jogue com responsabilidade.</p>
             <button className="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl shadow-lg transition-all active:scale-95" onClick={() => setIsLuckyModalOpen(false)}>Copiar e Fechar</button>
           </div>
         </div>
