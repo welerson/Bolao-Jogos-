@@ -4,7 +4,6 @@ import { User, UserRole, Pool, PoolStatus } from './types';
 import Layout from './components/Layout';
 import PoolCard from './components/PoolCard';
 import { LOTTERY_GAMES, APP_MESSAGES } from './constants';
-import { geminiService } from './services/geminiService';
 import './firebase';
 
 const MOCK_USER: User = {
@@ -50,9 +49,6 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [pools, setPools] = useState<Pool[]>(INITIAL_POOLS);
   const [selectedPool, setSelectedPool] = useState<Pool | null>(null);
-  const [isLuckyModalOpen, setIsLuckyModalOpen] = useState(false);
-  const [luckyNumbers, setLuckyNumbers] = useState<number[]>([]);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   
   const [newPool, setNewPool] = useState({
@@ -82,22 +78,6 @@ const App: React.FC = () => {
     setPools([pool, ...pools]);
     setActiveTab('home');
     alert('Bolão criado com sucesso!');
-  };
-
-  const handleGenerateLucky = async () => {
-    if (!selectedPool) return;
-    setIsGenerating(true);
-    try {
-      const game = LOTTERY_GAMES.find(g => g.id === selectedPool.gameType);
-      const nums = await geminiService.generateLuckyNumbers(selectedPool.gameType, game?.minNumbers || 6);
-      setLuckyNumbers(nums);
-      setIsLuckyModalOpen(true);
-    } catch (err) {
-      console.error(err);
-      alert("Erro ao gerar números da sorte.");
-    } finally {
-      setIsGenerating(false);
-    }
   };
 
   const renderHome = () => (
@@ -154,16 +134,12 @@ const App: React.FC = () => {
               {selectedPool.description}
             </div>
             
-            <div className="bg-indigo-600 rounded-3xl p-6 text-white space-y-4">
-              <h3 className="font-bold text-sm">Palpite da IA (Gemini)</h3>
-              <p className="text-xs opacity-80">Gere números baseados em tendências e estatísticas simuladas.</p>
-              <button 
-                onClick={handleGenerateLucky}
-                disabled={isGenerating}
-                className="w-full py-3 bg-white text-indigo-600 font-bold rounded-xl text-xs disabled:opacity-50 transition-all active:scale-95"
-              >
-                {isGenerating ? 'Gerando...' : 'Sugerir Números da Sorte'}
-              </button>
+            <div className="bg-slate-100 rounded-3xl p-6 text-slate-800 space-y-2 border border-slate-200">
+              <h3 className="font-bold text-sm">Informações do Sorteio</h3>
+              <p className="text-xs text-slate-500">
+                Os sorteios ocorrem de acordo com o cronograma oficial da Caixa Econômica Federal. 
+                Os resultados e comprovantes serão publicados pelo organizador após o fechamento.
+              </p>
             </div>
 
             <button 
@@ -218,20 +194,6 @@ const App: React.FC = () => {
               <button className="text-xs font-bold text-blue-600 hover:underline">Copiar código PIX</button>
             </div>
             <button className="w-full py-4 bg-emerald-600 text-white font-bold rounded-2xl shadow-md transition-all active:scale-95" onClick={() => setShowPaymentModal(false)}>Confirmar Pagamento</button>
-          </div>
-        </div>
-      )}
-
-      {isLuckyModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6">
-          <div className="bg-white p-10 rounded-[40px] w-full max-w-sm text-center animate-in zoom-in-95 duration-200">
-            <h3 className="text-xl font-bold mb-6 text-slate-800 tracking-tight">Números Gerados</h3>
-            <div className="flex flex-wrap justify-center gap-3 mb-8">
-              {luckyNumbers.map((n, i) => (
-                <span key={i} className="w-12 h-12 bg-indigo-50 text-indigo-600 flex items-center justify-center rounded-full font-bold text-lg border border-indigo-100 shadow-sm animate-in fade-in zoom-in duration-300 delay-75">{n}</span>
-              ))}
-            </div>
-            <button className="w-full py-4 bg-indigo-600 text-white font-bold rounded-2xl shadow-lg transition-all active:scale-95" onClick={() => setIsLuckyModalOpen(false)}>Copiar e Fechar</button>
           </div>
         </div>
       )}
